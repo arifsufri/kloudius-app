@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { forwardRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 
-import { colors, radius, spacing } from '@/theme';
+import { colors, fonts, radius, spacing } from '@/theme';
 
 type Props = TextInputProps & {
   label: string;
@@ -24,11 +24,11 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputRow, { borderColor }]}>
+      <View style={[styles.inputRow, isFocused && styles.inputRowFocused, { borderColor }]}>
         <Ionicons
           name={icon}
           size={20}
-          color={error ? colors.error : isFocused ? colors.primary : colors.textMuted}
+          color={error ? colors.error : isFocused ? colors.text : colors.textMuted}
         />
         <TextInput
           ref={ref}
@@ -73,23 +73,26 @@ export const TextField = forwardRef<TextInput, Props>(function TextField(
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.md - 2,
   },
   label: {
+    fontFamily: fonts.semiBold,
     fontSize: 14,
-    fontWeight: '600',
     color: colors.text,
-    marginBottom: spacing.sm,
+    marginBottom: 6,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.inputBackground,
     borderWidth: 1.5,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    height: 52,
+    height: 50,
+  },
+  inputRowFocused: {
+    backgroundColor: colors.surface,
   },
   input: {
     flex: 1,

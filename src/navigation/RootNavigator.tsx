@@ -1,10 +1,12 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useRef } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '@/context/AuthContext';
 import type { RootStackParamList } from '@/navigation/types';
 import HomeScreen from '@/screens/HomeScreen';
 import LoginScreen from '@/screens/LoginScreen';
+import OnboardingScreen from '@/screens/OnboardingScreen';
 import SignupScreen from '@/screens/SignupScreen';
 import { colors } from '@/theme';
 
@@ -19,6 +21,11 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export function RootNavigator() {
   const { user, isRestoring } = useAuth();
 
+  // Onboarding is for first-time visitors. Once someone has been signed in during this run,
+  // logging out should land on Login (per the spec), so Onboarding is left out of the stack.
+  const hadSession = useRef(false);
+  if (user) hadSession.current = true;
+
   if (isRestoring) {
     return (
       <View style={styles.loading}>
@@ -31,7 +38,7 @@ export function RootNavigator() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
+        contentStyle: { backgroundColor: colors.white },
         animation: 'slide_from_right',
       }}
     >
@@ -39,7 +46,18 @@ export function RootNavigator() {
         <Stack.Screen name="Home" component={HomeScreen} />
       ) : (
         <>
-          <Stack.Screen name="Login" component={LoginScreen} options={{ animationTypeForReplace: 'pop' }} />
+          {!hadSession.current && (
+            <Stack.Screen
+              name="Onboarding"
+              component={OnboardingScreen}
+              options={{ animationTypeForReplace: 'pop' }}
+            />
+          )}
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ animationTypeForReplace: 'pop' }}
+          />
           <Stack.Screen name="Signup" component={SignupScreen} />
         </>
       )}
@@ -52,6 +70,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.background,
+    // Matches the white screens it hands off to, so there's no grey flash on launch.
+    backgroundColor: colors.white,
   },
 });

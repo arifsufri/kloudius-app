@@ -5,12 +5,12 @@ A React Native (Expo + TypeScript) app with **Login**, **Signup** and **Home** s
 ## Screenshots
 
 | Onboarding | Login | Signup |
-| --- | --- | --- |
-| ![Onboarding](docs/screenshots/onboarding.png) | ![Login](docs/screenshots/login.png) | ![Signup](docs/screenshots/signup.png) |
+| :---: | :---: | :---: |
+| <img src="assets/onboarding.png" alt="Onboarding screen" width="250" /> | <img src="assets/login.png" alt="Login screen" width="250" /> | <img src="assets/signup.png" alt="Signup screen" width="250" /> |
 
-| Home | Validation errors | Password visible |
-| --- | --- | --- |
-| ![Home](docs/screenshots/home.png) | ![Validation](docs/screenshots/validation.png) | ![Password toggle](docs/screenshots/password-toggle.png) |
+| Home | Validation errors | Password rules + visibility toggle |
+| :---: | :---: | :---: |
+| <img src="assets/homescreen.png" alt="Home screen" width="250" /> | <img src="assets/error.png" alt="Signup showing missing-field errors" width="250" /> | <img src="assets/password.png" alt="Signup with all password rules met and the password visible" width="250" /> |
 
 ## Tech stack
 

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
 import { AuthLayout } from '@/components/AuthLayout';
 import { Button } from '@/components/Button';
@@ -8,7 +8,7 @@ import { TextField } from '@/components/TextField';
 import { useAuth } from '@/context/AuthContext';
 import type { RootStackScreenProps } from '@/navigation/types';
 import { AuthError } from '@/services/authService';
-import { colors, spacing } from '@/theme';
+import { spacing } from '@/theme';
 import { FieldErrors, hasErrors, validateLogin } from '@/utils/validation';
 
 type Field = 'email' | 'password';
@@ -30,6 +30,8 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
   };
 
   const handleLogin = async () => {
+    // The button is disabled while loading, but the keyboard's "go" key isn't.
+    if (isSubmitting) return;
     const errors = validateLogin(values);
     setFieldErrors(errors);
     setFormError(null);
@@ -49,26 +51,19 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
 
   return (
     <AuthLayout
-      icon="lock-closed"
       title="Welcome back"
       subtitle="Log in to continue to your account"
-      footer={
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account?</Text>
-          <Button
-            title="Go to Signup"
-            variant="secondary"
-            onPress={() => navigation.navigate('Signup')}
-          />
-        </View>
-      }
+      switchPrompt="Don't have an account?"
+      switchLabel="Signup"
+      // Replace (not push) so Back always returns to Onboarding instead of ping-ponging.
+      onSwitch={() => navigation.replace('Signup')}
     >
       <ErrorBanner message={formError} />
 
       <TextField
         label="Email"
         icon="mail-outline"
-        placeholder="you@example.com"
+        placeholder="Enter your email"
         value={values.email}
         onChangeText={setField('email')}
         error={fieldErrors.email}
@@ -98,7 +93,12 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
       />
 
       <View style={styles.submit}>
-        <Button title="Login" onPress={handleLogin} loading={isSubmitting} />
+        <Button
+          title="Login"
+          trailingIcon="arrow-forward"
+          onPress={handleLogin}
+          loading={isSubmitting}
+        />
       </View>
     </AuthLayout>
   );
@@ -107,13 +107,5 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
 const styles = StyleSheet.create({
   submit: {
     marginTop: spacing.sm,
-  },
-  footer: {
-    gap: spacing.sm,
-  },
-  footerText: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontSize: 14,
   },
 });

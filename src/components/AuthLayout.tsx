@@ -1,44 +1,88 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { ReactNode } from 'react';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, radius, spacing } from '@/theme';
+import { BrandBackdrop } from '@/components/BrandBackdrop';
+import { colors, fonts, spacing } from '@/theme';
+
+const logo = require('../../assets/kloudius-logo.webp');
 
 type Props = {
-  icon: keyof typeof Ionicons.glyphMap;
   title: string;
   subtitle: string;
   children: ReactNode;
-  footer: ReactNode;
+  /** Footer prompt + link for switching between Login and Signup, e.g. "New here?" / "Sign up". */
+  switchPrompt: string;
+  switchLabel: string;
+  onSwitch: () => void;
 };
 
-/** Shared shell for the Login and Signup screens: header, form card, footer. */
-export function AuthLayout({ icon, title, subtitle, children, footer }: Props) {
+/** Shared shell for the Login and Signup screens: back button, brand header, form card, footer. */
+export function AuthLayout({ title, subtitle, children, switchPrompt, switchLabel, onSwitch }: Props) {
+  const navigation = useNavigation();
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
+      <BrandBackdrop />
+
+      <View style={styles.topBar}>
+        {navigation.canGoBack() && (
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={({ pressed }) => [styles.backButton, pressed && styles.backPressed]}
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.text} />
+          </Pressable>
+        )}
+        <Image source={logo} style={styles.logo} resizeMode="contain" accessibilityLabel="Kloudius" />
+      </View>
+
+      {/*
+        Top-aligned content that stays put while the keyboard slides over it, the standard iOS
+        pattern. The ScrollView's insets grow with the keyboard so the focused field is scrolled into
+        view natively, instead of a KeyboardAvoidingView shrinking the screen and re-centring
+        everything (which made the form jump). Android resizes the window for the keyboard itself.
+      */}
+      <ScrollView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        contentContainerStyle={styles.scrollContent}
+        automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        // Content is sized to fit the screen; only scroll when it must (e.g. keyboard open).
+        alwaysBounceVertical={false}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.header}>
-            <View style={styles.iconBadge}>
-              <Ionicons name={icon} size={32} color={colors.primary} />
-            </View>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>{subtitle}</Text>
-          </View>
+        <View style={styles.header}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.subtitle}>{subtitle}</Text>
+        </View>
 
-          <View style={styles.card}>{children}</View>
+        <View>{children}</View>
 
-          <View style={styles.footer}>{footer}</View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>{switchPrompt}</Text>
+          <Pressable onPress={onSwitch} hitSlop={10} accessibilityRole="link">
+            {({ pressed }) => (
+              <Text style={[styles.footerLink, pressed && styles.footerLinkPressed]}>
+                {switchLabel}
+              </Text>
+            )}
+          </Pressable>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -46,51 +90,73 @@ export function AuthLayout({ icon, title, subtitle, children, footer }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
   },
   flex: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
+  topBar: {
+    height: 48,
+    alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+  },
+  backButton: {
+    position: 'absolute',
+    left: spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  backPressed: {
+    backgroundColor: colors.background,
+  },
+  logo: {
+    width: 128,
+    height: 39,
+  },
+  scrollContent: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
   },
   header: {
-    alignItems: 'center',
     marginBottom: spacing.lg,
   },
-  iconBadge: {
-    width: 72,
-    height: 72,
-    borderRadius: radius.lg,
-    backgroundColor: colors.primaryMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontFamily: fonts.extraBold,
+    fontSize: 32,
+    lineHeight: 38,
+    letterSpacing: -1,
     color: colors.text,
   },
   subtitle: {
     fontSize: 15,
     color: colors.textMuted,
     marginTop: spacing.xs,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
   },
   footer: {
-    marginTop: spacing.lg,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+  },
+  footerText: {
+    fontSize: 15,
+    color: colors.textMuted,
+  },
+  footerLink: {
+    fontFamily: fonts.semiBold,
+    fontSize: 15,
+    color: colors.primary,
+  },
+  footerLinkPressed: {
+    color: colors.primaryPressed,
   },
 });
